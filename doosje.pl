@@ -19,7 +19,7 @@ my $margin       =  5;    # Margin between page boundary and between objects
 my $fingerwidth  =  4;    # Width of the "fingers"
 my $linespacing  =  1.5;  # Space between parallel flex lines (centre to centre)
 my $linegap      =  3;    # Space between flex lines
-my $kerf         =  0;    # Cutting loss. Set to 0 if you don't know the kerf,
+my $kerf         =  0.1;  # Cutting loss. Set to 0 if you don't know the kerf,
                           # to get the regular loose fit. Increase for a more
                           # tight fit. The kerf is typically much less than
                           # 0.5 mm.
@@ -63,11 +63,12 @@ $innerwidth      += $dkerf;
 $innerheight     += $dkerf;
 $innerlength     += $dkerf;
 $halflength      += $kerf;
-$linegap         += $dkerf; $linelength        -= $dkerf;
+$linegap         += $dkerf;
 
 my $outerlinelength = ($innerwidth - $normallines * $linelength - $evenlinegaps * $linegap) / 2;
 
-$outerlinegap    += $kerf;  $outerlinelength   -= $kerf;
+$linelength      -= $dkerf;
+
 
 my $halfnotchspacing = $notchspacing / 2;
 my $notchless = ($innerlength / 2) - $halfnotchspacing - $fingerholewidth;
@@ -117,15 +118,14 @@ for (1..2) {
         if ($x_line % 2) {
             say "m 0 $linegap";
             say "v $linelength m 0 $linegap" for 1..$oddlinegaps-1;
+            say "m $linespacing -$realinnerwidth";
         } else {
             say "v $outerlinelength";
-            say "m 0 $outerlinegap";
-            say "v $linelength m 0 $linegap" for 1..$normallines-1;
-            say "v $linelength m 0 $outerlinegap" if $normallines;
+            say "m 0 $linegap";
+            say "v $linelength m 0 $linegap" for 1..$normallines;
             say "v $outerlinelength";
+            say "m $linespacing -$innerwidth";
         }
-        say "";
-        say "m $linespacing -$realinnerwidth";
     }
     say "'/>";
     $x += $halfcircum + $realinnerlength;
