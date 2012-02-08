@@ -5,12 +5,11 @@ use v5.14;
 use POSIX qw(ceil);
 my $pi = 3.1415926;
 
-
 # millimeters
 
 my $innerheight = 40;
-my $innerlength = 100;
-my $innerwidth = 80;
+my $innerlength = 80;
+my $innerwidth = 60;
 my $thickness = 2;
 my $notchspacing = 15;
 my $fingerless = 2;
@@ -19,10 +18,9 @@ my $fingerwidth = 4;
 my $linespacing = 1.5;
 my $linegap = 3;
 my $kerf = 0;
-
 ##
-
-my $oddlinegaps = 3;
+my $oddlinegaps = 3;  # >= 2
+##
 my $fingerspacing = $fingerwidth;
 my $fingerholewidth = $fingerwidth;
 my $fingerholespacing = $fingerspacing;
@@ -147,9 +145,9 @@ for (1..2) {
         } else {
             say "v $outerlinelength";
             say "m 0 $outerlinegap";
-            say "v $linelength m 0 $linegap" for 1..$evenlinegaps-2;
-            say "v $linelength";
-            say "m 0 $outerlinegap v $outerlinelength";
+            say "v $linelength m 0 $linegap" for 1..$normallines-1;
+            say "v $linelength m 0 $outerlinegap" if $normallines;
+            say "v $outerlinelength";
         }
         say "";
         say "m $linespacing -$realinnerwidth";
