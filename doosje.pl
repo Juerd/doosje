@@ -79,8 +79,7 @@ $fingerless = ($realinnerlength - (2 * $fingers - 1) * $fingerwidth) / 2;
 
 warn sprintf(
     "Sheet size must be at least %d x %d.\n",
-    my $sheetwidth = max(
-        ceil(3 * $margin + 4 * $radius + 2 * $innerlength),
+    my $sheetwidth = ceil(
         ceil(2 * $margin + 2 * $innerlength + $circum),
     ),
     my $sheetheight = ceil(
