@@ -5,16 +5,6 @@ use v5.14;
 use POSIX qw(ceil);
 my $pi = 3.1415926;
 
-print <<END;
-<?xml version="1.0" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" 
-  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1"
- width="350mm" height="210mm" viewBox="0 0 350 210">
-<style type="text/css">
-path { stroke: red; fill: none; stroke-width: 0.1mm; }
-</style>
-END
 
 # millimeters
 
@@ -27,25 +17,47 @@ my $margin = 5;
 my $fingerwidth = 4;
 my $linespacing = 1.5;
 my $linegap = 3;
+my $kerf = 0.1;
 
 ##
 
+my $fingerspacing = $fingerwidth;
+
+my $fingerholewidth = $fingerwidth;
+my $fingerholespacing = $fingerspacing;
+
+my $halflength = $innerlength / 2;
+
+$fingerwidth     += $kerf; $fingerspacing     -= $kerf;
+$fingerholewidth -= $kerf; $fingerholespacing += $kerf;
+$innerwidth      += $kerf;
+$innerheight     += $kerf;
+$halflength      += $kerf;
+$linegap         += $kerf;
 
 my $linegaps = 3;
 my $notchgap = 3 * $fingerwidth;
 my $halfnotchgap = $notchgap / 2;
-my $notchless = ($innerlength - $notchgap - 2 * $fingerwidth) / 2;
+my $notchless = $halflength - ($notchgap - 2 * $fingerwidth) / 2;
 
 my $fingers = int(($innerlength - 2 * $fingerless) / $fingerwidth / 2);
 
-
 $fingerless = ($innerlength - (2 * $fingers - 1) * $fingerwidth) / 2;
 
-my $fingerspacing = $fingerwidth;
 my $radius = $innerheight / 2;
 my $circum = $pi * $innerheight;
 my $halfcircum = $circum / 2;
 
+print <<"END";
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" 
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1"
+ width="350mm" height="210mm" viewBox="0 0 350 210">
+<style type="text/css">
+path { stroke: red; fill: none; stroke-width: ${kerf}mm; }
+</style>
+END
 
 my $x = $margin + $notchless + $fingerwidth + $radius;
 my $y = $margin + $thickness;
@@ -81,33 +93,32 @@ say "<path d='M $x $y";
 say "v $innerwidth";
 
 say "h $halfnotchgap";
-say "v -$thickness h $fingerwidth v $thickness";
+say "v -$thickness h $fingerholewidth v $thickness";
 say "h $notchless $halfcircum $fingerless";
 
-say "v -$thickness h $fingerwidth v $thickness h $fingerspacing"
+say "v -$thickness h $fingerholewidth v $thickness h $fingerholespacing"
     for 1..($fingers - 1);
-say "v -$thickness h $fingerwidth v $thickness";
+say "v -$thickness h $fingerholewidth v $thickness";
 
 say "h $fingerless $halfcircum $notchless";
-say "v -$thickness h $fingerwidth v $thickness";
+say "v -$thickness h $fingerholewidth v $thickness";
 say "h $halfnotchgap";
 
 say "v -$innerwidth";
 
 say "h -$halfnotchgap";
-say "v $thickness h -$fingerwidth v -$thickness";
+say "v $thickness h -$fingerholewidth v -$thickness";
 say "h -$notchless -$halfcircum -$fingerless";
 
-say "v $thickness h -$fingerwidth v -$thickness h -$fingerspacing"
+say "v $thickness h -$fingerholewidth v -$thickness h -$fingerholespacing"
     for 1..($fingers - 1);
-say "v $thickness h -$fingerwidth v -$thickness";
+say "v $thickness h -$fingerholewidth v -$thickness";
 
 say "h -$fingerless -$halfcircum -$notchless";
-say "v $thickness h -$fingerwidth v -$thickness";
+say "v $thickness h -$fingerholewidth v -$thickness";
 #say "h -$halfnotchgap";
 say "z'/>";
 
-my $halflength = $innerlength / 2;
 
 $x = $margin + $halflength;
 
@@ -136,7 +147,7 @@ for (1..2) {
     $x += $halfcircum + $innerlength;
 }
 
-print <<END;
+print <<"END";
 </g>
 </svg>
 END
