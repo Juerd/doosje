@@ -73,6 +73,7 @@ for (1..2) {
     $x += $innerheight + $innerlength + $margin;
 }
 
+say "<g>";
 $x = $margin + 0;
 $y = $margin + $innerheight + 2 * $thickness + $margin;
 
@@ -128,6 +129,7 @@ for (1..2) {
             say "v $linelength m 0 $linegap" for 1..$gaps-1;
             say "v $outerlinelength";
         }
+        say "";
         say "m $linespacing -$innerwidth";
     }
     say "'/>";
@@ -135,5 +137,6 @@ for (1..2) {
 }
 
 print <<END;
+</g>
 </svg>
 END
