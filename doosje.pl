@@ -3,24 +3,42 @@
 use strict;
 use v5.14;
 use POSIX qw(ceil);
+use List::Util qw(max);
 my $pi = 3.1415926;
 
-# millimeters
+# All these are in millimeters:
 
-my $innerheight = 40;
-my $innerlength = 80;
-my $innerwidth = 60;
-my $thickness = 2;
-my $notchspacing = 15;
-my $fingerless = 2;
-my $margin = 5;
-my $fingerwidth = 4;
-my $linespacing = 1.5;
-my $linegap = 3;
-my $kerf = 0;
+my $innerheight  = 40;    # Inner height; nothing special
+my $innerlength  = 80;    # Inner length excluding half circles on the sides
+my $innerwidth   = 60;    # Inner width of the box, between the two walls
+my $thickness    =  2;    # Material thickness
+
+my $notchspacing = 15;    # Space between the lid notches
+my $fingerless   =  2;    # Space between "fingers" and half circle
+my $margin       =  5;    # Margin between page boundary and between objects
+my $fingerwidth  =  4;    # Width of the "fingers"
+my $linespacing  =  1.5;  # Space between parallel flex lines (centre to centre)
+my $linegap      =  3;    # Space between flex lines
+my $kerf         =  0;    # Cutting loss. Set to 0 if you don't know the kerf,
+                          # to get the regular loose fit. Increase for a more
+                          # tight fit. The kerf is typically much less than
+                          # 0.5 mm.
 ##
-my $oddlinegaps = 3;  # >= 2
+
+my $oddlinegaps = 3;      # Number of uncut gaps between the flex lines
+
 ##
+my $radius = $innerheight / 2;
+my $circum = $pi * $innerheight;
+my $halfcircum = $circum / 2;
+
+warn sprintf(
+    "Outer dimensions of the box will be %d x %d x %d (L x W x H).\n",
+    2 * $thickness + $innerlength + 2 * $radius,
+    2 * $thickness + $innerwidth,
+    2 * $thickness + $innerheight,
+);
+
 my $fingerspacing = $fingerwidth;
 my $fingerholewidth = $fingerwidth;
 my $fingerholespacing = $fingerspacing;
@@ -32,6 +50,7 @@ my $linelength = ($innerwidth - $oddlinegaps * $linegap) / ($oddlinegaps - 1);
 my $evenlinegaps = $oddlinegaps - 1;
 my $normallines = $evenlinegaps - 1;
 my $realinnerwidth = $innerwidth;
+my $realinnerlength = $innerlength;
 my $stroke = $kerf || 0.1;
 
 my $dkerf = 2 * $kerf;
@@ -42,6 +61,7 @@ $fingerlength    += $kerf;
 $fingerholedepth -= $kerf;
 $innerwidth      += $dkerf;
 $innerheight     += $dkerf;
+$innerlength     += $dkerf;
 $halflength      += $kerf;
 $linegap         += $dkerf; $linelength        -= $dkerf;
 
@@ -52,13 +72,10 @@ $outerlinegap    += $kerf;  $outerlinelength   -= $kerf;
 my $halfnotchspacing = $notchspacing / 2;
 my $notchless = ($innerlength / 2) - $halfnotchspacing - $fingerholewidth;
 
-my $fingers = int(($innerlength - 2 * $fingerless) / $fingerwidth / 2);
+my $fingers = int(($realinnerlength - 2 * $fingerless) / $fingerwidth / 2);
 
-$fingerless = ($innerlength - (2 * $fingers - 1) * $fingerwidth) / 2;
+$fingerless = ($realinnerlength - (2 * $fingers - 1) * $fingerwidth) / 2;
 
-my $radius = $innerheight / 2;
-my $circum = $pi * $innerheight;
-my $halfcircum = $circum / 2;
 
 print <<"END";
 <?xml version="1.0" standalone="no"?>
@@ -71,68 +88,15 @@ path { stroke: red; fill: none; stroke-width: ${stroke}mm; }
 </style>
 END
 
-my $x = $margin + $notchless + $fingerwidth + $radius;
-my $y = $margin + $thickness;
+my ($x, $y);
 
-for (1..2) {
-    say "<path d='M $x $y";
-    say "v -$thickness h -$fingerwidth v $thickness";
-    say "h -$notchless";
+say "<g>";  # Grouping makes moving things around in Inkscape easier
 
-    say "a $radius $radius 0 0,0 0 $innerheight";
-
-    say "h $fingerless";
-    say "v $thickness h $fingerwidth v -$thickness h $fingerspacing"
-        for 1..($fingers - 1);
-    say "v $thickness h $fingerwidth v -$thickness";
-    say "h $fingerless";
-
-    say "a $radius $radius 0 0,0 0 -$innerheight";
-
-    say "h -$notchless";
-    say "v -$thickness h -$fingerwidth v $thickness";
-
-    say "z'/>";
-
-    $x += $innerheight + $innerlength + $margin;
-}
-
-say "<g>";
-$x = $margin + 0;
-$y = $margin + $innerheight + 2 * $thickness + $margin;
-
-say "<path d='M $x $y";
-say "v $innerwidth";
-
-say "h $halfnotchspacing";
-say "v -$thickness h $fingerholewidth v $thickness";
-say "h $notchless $halfcircum $fingerless";
-
-say "v -$thickness h $fingerholewidth v $thickness h $fingerholespacing"
-    for 1..($fingers - 1);
-say "v -$thickness h $fingerholewidth v $thickness";
-
-say "h $fingerless $halfcircum $notchless";
-say "v -$thickness h $fingerholewidth v $thickness";
-say "h $halfnotchspacing";
-
-say "v -$innerwidth";
-
-say "h -$halfnotchspacing";
-say "v $thickness h -$fingerholewidth v -$thickness";
-say "h -$notchless -$halfcircum -$fingerless";
-
-say "v $thickness h -$fingerholewidth v -$thickness h -$fingerholespacing"
-    for 1..($fingers - 1);
-say "v $thickness h -$fingerholewidth v -$thickness";
-
-say "h -$fingerless -$halfcircum -$notchless";
-say "v $thickness h -$fingerholewidth v -$thickness";
-#say "h -$halfnotchspacing";
-say "z'/>";
-
+# Draw flex lines first to avoid focus issues
+# See http://www.thingiverse.com/thing:14267
 
 $x = $margin + $halflength;
+$y = $margin + $innerheight + 2 * $thickness + $margin;
 
 for (1..2) {
     say "<path d='M $x $y";
@@ -153,10 +117,106 @@ for (1..2) {
         say "m $linespacing -$realinnerwidth";
     }
     say "'/>";
-    $x += $halfcircum + $innerlength;
+    $x += $halfcircum + $realinnerlength;
 }
 
-print <<"END";
-</g>
-</svg>
-END
+# Next, draw the big part around the flex lines.
+
+$x = $margin + 0;
+
+say "<path d='M $x $y";
+
+# WEST
+say "v $innerwidth";
+
+# SOUTH: West lid, with notch hole
+say "h $halfnotchspacing";
+say "v -$thickness h $fingerholewidth v $thickness";
+say "h $notchless";
+
+# SOUTH: West hinge
+say "h $halfcircum";
+
+# SOUTH: Finger holes
+say "h $fingerless";
+say "v -$thickness h $fingerholewidth v $thickness h $fingerholespacing"
+    for 1..($fingers - 1);
+say "v -$thickness h $fingerholewidth v $thickness";
+say "h $fingerless";
+
+# SOUTH: East hinge
+say "h $halfcircum";
+
+# SOUTH: East lid, with notch hole
+say "h $notchless";
+say "v -$thickness h $fingerholewidth v $thickness";
+say "h $halfnotchspacing";
+
+# WEST
+say "v -$innerwidth";
+
+# NORTH: East lid, with notch hole
+say "h -$halfnotchspacing";
+say "v $thickness h -$fingerholewidth v -$thickness";
+say "h -$notchless";
+
+# NORTH: East hinge
+say "h -$halfcircum";
+
+# NORTH: Finger holes
+say "h -$fingerless";
+say "v $thickness h -$fingerholewidth v -$thickness h -$fingerholespacing"
+    for 1..($fingers - 1);
+say "v $thickness h -$fingerholewidth v -$thickness";
+
+say "h -$fingerless";
+
+# NORTH: West hinge
+say "h -$halfcircum";
+
+# NORTH: West lid, with notch hole
+say "h -$notchless";
+say "v $thickness h -$fingerholewidth v -$thickness";
+say "h -$halfnotchspacing" if 0;  # not needed but useful for debugging
+say "z'/>";
+
+say "</g>";
+
+
+# Draw walls
+
+$x = $margin + $notchless + $fingerwidth + $radius;
+$y = $margin + $thickness;
+
+for (1..2) {
+    say "<path d='M $x $y";
+
+    # TOP: Left lid notch and lid bed
+    say "v -$thickness h -$fingerwidth v $thickness";
+    say "h -$notchless";
+
+    # LEFT: Hinge arc
+    say "a $radius $radius 0 0,0 0 $innerheight";
+
+    # BOTTOM: Fingers
+    say "h $fingerless";
+    say "v $thickness h $fingerwidth v -$thickness h $fingerspacing"
+        for 1..($fingers - 1);
+    say "v $thickness h $fingerwidth v -$thickness";
+    say "h $fingerless";
+
+    # RIGHT: Hinge arc
+    say "a $radius $radius 0 0,0 0 -$innerheight";
+
+    # TOP: Right lid notch and lid bed
+    say "h -$notchless";
+    say "v -$thickness h -$fingerwidth v $thickness";
+
+    # Close path
+    say "h -$notchspacing" if 0;  # not needed but useful for debugging
+    say "z'/>";
+
+    $x += $innerheight + $innerlength + $margin;
+}
+
+say "</svg>";

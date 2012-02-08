@@ -1,0 +1,26 @@
+doosje.pl creates an SVG for laser cutting a small box. This project has
+no home page but its source code repository can be found online at
+<https://github.com/Juerd/doosje>.
+
+The box will have two flexible hinges and consists of three parts. This
+method of making flexible hinges was invented by SNIJLAB, and this
+specific box design is based on the one you can create at
+<http://www.frag-den-spatz.de/boxdesigner/> for a small fee.
+
+Doosje may be used, distributed and modified freely, by anyone, for any
+purpose.
+
+To build an SVG change a few parameters in the file and then run
+
+    perl doosje.pl > myfirstdoosje.svg
+
+The resulting SVG might require some changes before it works with your
+specific lasercutter; specifically, you might need to alter the stroke
+color or width.
+
+The parameters are documented in the script file itself.
+
+Please share photos of your boxes, along with the generated SVG, on
+thingiverse.com. If you've made changes to doosje.pl, other than just
+the box parameters, please contribute back on Github or send the
+modified file or a diff to <#####@juerd.nl>.
