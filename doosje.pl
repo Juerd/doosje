@@ -52,6 +52,9 @@ my $normallines = $evenlinegaps - 1;
 my $realinnerwidth = $innerwidth;
 my $realinnerlength = $innerlength;
 my $stroke = $kerf || 0.1;
+my $fingers = int(($realinnerlength - 2 * $fingerless) / $fingerwidth / 2);
+$fingerless = ($realinnerlength - (2 * $fingers - 1) * $fingerwidth) / 2;
+my $fingerholeless = $fingerless;
 
 my $dkerf = 2 * $kerf;
 
@@ -59,6 +62,7 @@ $fingerwidth     += $dkerf; $fingerspacing     -= $dkerf;
 $fingerholewidth -= $dkerf; $fingerholespacing += $dkerf;
 $fingerlength    += $kerf;
 $fingerholedepth -= $kerf;
+$fingerholeless  += $kerf;
 $innerwidth      += $dkerf;
 $innerheight     += $dkerf;
 $innerlength     += $dkerf;
@@ -72,10 +76,6 @@ $linelength      -= $dkerf;
 
 my $halfnotchspacing = $notchspacing / 2;
 my $notchless = ($innerlength / 2) - $halfnotchspacing - $fingerholewidth;
-
-my $fingers = int(($realinnerlength - 2 * $fingerless) / $fingerwidth / 2);
-
-$fingerless = ($realinnerlength - (2 * $fingers - 1) * $fingerwidth) / 2;
 
 
 warn sprintf(
@@ -111,6 +111,9 @@ $x = $margin + $halflength;
 $y = $margin + $innerheight + 2 * $thickness + $margin;
 
 for (1..2) {
+    # Draw from outside in, to ensure symmetry
+    my $direction = $_ == 2 ? "-" : "";
+
     say "<path d='M $x $y";
     my $lines_x = ceil($halfcircum / $linespacing) + 1;
 
@@ -118,17 +121,17 @@ for (1..2) {
         if ($x_line % 2) {
             say "m 0 $linegap";
             say "v $linelength m 0 $linegap" for 1..$oddlinegaps-1;
-            say "m $linespacing -$realinnerwidth";
+            say "m $direction$linespacing -$realinnerwidth";
         } else {
             say "v $outerlinelength";
             say "m 0 $linegap";
             say "v $linelength m 0 $linegap" for 1..$normallines;
             say "v $outerlinelength";
-            say "m $linespacing -$innerwidth";
+            say "m $direction$linespacing -$innerwidth";
         }
     }
     say "'/>";
-    $x += $halfcircum + $realinnerlength;
+    $x += $circum + $realinnerlength if $_ == 1;
 }
 
 # Next, draw the big part around the flex lines.
@@ -149,11 +152,11 @@ say "h $notchless";
 say "h $halfcircum";
 
 # SOUTH: Finger holes
-say "h $fingerless";
+say "h $fingerholeless";
 say "v -$fingerholedepth h $fingerholewidth v $fingerholedepth h $fingerholespacing"
     for 1..($fingers - 1);
 say "v -$fingerholedepth h $fingerholewidth v $fingerholedepth";
-say "h $fingerless";
+say "h $fingerholeless";
 
 # SOUTH: East hinge
 say "h $halfcircum";
@@ -175,12 +178,12 @@ say "h -$notchless";
 say "h -$halfcircum";
 
 # NORTH: Finger holes
-say "h -$fingerless";
+say "h -$fingerholeless";
 say "v $fingerholedepth h -$fingerholewidth v -$fingerholedepth h -$fingerholespacing"
     for 1..($fingers - 1);
 say "v $fingerholedepth h -$fingerholewidth v -$fingerholedepth";
 
-say "h -$fingerless";
+say "h -$fingerholeless";
 
 # NORTH: West hinge
 say "h -$halfcircum";
