@@ -77,12 +77,24 @@ my $fingers = int(($realinnerlength - 2 * $fingerless) / $fingerwidth / 2);
 $fingerless = ($realinnerlength - (2 * $fingers - 1) * $fingerwidth) / 2;
 
 
+warn sprintf(
+    "Sheet size must be at least %d x %d.\n",
+    my $sheetwidth = max(
+        ceil(3 * $margin + 4 * $radius + 2 * $innerlength),
+        ceil(2 * $margin + 2 * $innerlength + $circum),
+    ),
+    my $sheetheight = ceil(
+        3 * $margin + $innerheight + 2 * $fingerlength + $innerwidth
+    ),
+);
+
 print <<"END";
 <?xml version="1.0" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" 
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1"
- width="350mm" height="210mm" viewBox="0 0 350 210">
+ width="${sheetwidth}mm" height="${sheetheight}mm"
+ viewBox="0 0 ${sheetwidth} ${sheetheight}">
 <style type="text/css">
 path { stroke: red; fill: none; stroke-width: ${stroke}mm; }
 </style>
