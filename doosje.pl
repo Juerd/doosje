@@ -142,7 +142,7 @@ say "v $innerwidth";
 
 # SOUTH: West lid, with notch hole
 say "h $halfnotchspacing";
-say "v -$thickness h $fingerholewidth v $thickness";
+say "v -$fingerholedepth h $fingerholewidth v $fingerholedepth";
 say "h $notchless";
 
 # SOUTH: West hinge
@@ -150,9 +150,9 @@ say "h $halfcircum";
 
 # SOUTH: Finger holes
 say "h $fingerless";
-say "v -$thickness h $fingerholewidth v $thickness h $fingerholespacing"
+say "v -$fingerholedepth h $fingerholewidth v $fingerholedepth h $fingerholespacing"
     for 1..($fingers - 1);
-say "v -$thickness h $fingerholewidth v $thickness";
+say "v -$fingerholedepth h $fingerholewidth v $fingerholedepth";
 say "h $fingerless";
 
 # SOUTH: East hinge
@@ -160,7 +160,7 @@ say "h $halfcircum";
 
 # SOUTH: East lid, with notch hole
 say "h $notchless";
-say "v -$thickness h $fingerholewidth v $thickness";
+say "v -$fingerholedepth h $fingerholewidth v $fingerholedepth";
 say "h $halfnotchspacing";
 
 # WEST
@@ -168,7 +168,7 @@ say "v -$innerwidth";
 
 # NORTH: East lid, with notch hole
 say "h -$halfnotchspacing";
-say "v $thickness h -$fingerholewidth v -$thickness";
+say "v $fingerholedepth h -$fingerholewidth v -$fingerholedepth";
 say "h -$notchless";
 
 # NORTH: East hinge
@@ -176,9 +176,9 @@ say "h -$halfcircum";
 
 # NORTH: Finger holes
 say "h -$fingerless";
-say "v $thickness h -$fingerholewidth v -$thickness h -$fingerholespacing"
+say "v $fingerholedepth h -$fingerholewidth v -$fingerholedepth h -$fingerholespacing"
     for 1..($fingers - 1);
-say "v $thickness h -$fingerholewidth v -$thickness";
+say "v $fingerholedepth h -$fingerholewidth v -$fingerholedepth";
 
 say "h -$fingerless";
 
@@ -187,7 +187,7 @@ say "h -$halfcircum";
 
 # NORTH: West lid, with notch hole
 say "h -$notchless";
-say "v $thickness h -$fingerholewidth v -$thickness";
+say "v $fingerholedepth h -$fingerholewidth v -$fingerholedepth";
 say "h -$halfnotchspacing" if 0;  # not needed but useful for debugging
 say "z'/>";
 
@@ -203,7 +203,7 @@ for (1..2) {
     say "<path d='M $x $y";
 
     # TOP: Left lid notch and lid bed
-    say "v -$thickness h -$fingerwidth v $thickness";
+    say "v -$fingerlength h -$fingerwidth v $fingerlength";
     say "h -$notchless";
 
     # LEFT: Hinge arc
@@ -211,9 +211,9 @@ for (1..2) {
 
     # BOTTOM: Fingers
     say "h $fingerless";
-    say "v $thickness h $fingerwidth v -$thickness h $fingerspacing"
+    say "v $fingerlength h $fingerwidth v -$fingerlength h $fingerspacing"
         for 1..($fingers - 1);
-    say "v $thickness h $fingerwidth v -$thickness";
+    say "v $fingerlength h $fingerwidth v -$fingerlength";
     say "h $fingerless";
 
     # RIGHT: Hinge arc
@@ -221,7 +221,7 @@ for (1..2) {
 
     # TOP: Right lid notch and lid bed
     say "h -$notchless";
-    say "v -$thickness h -$fingerwidth v $thickness";
+    say "v -$fingerlength h -$fingerwidth v $fingerlength";
 
     # Close path
     say "h -$notchspacing" if 0;  # not needed but useful for debugging
