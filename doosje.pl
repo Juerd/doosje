@@ -12,6 +12,7 @@ my $innerheight = 40;
 my $innerlength = 100;
 my $innerwidth = 80;
 my $thickness = 2;
+my $notchspacing = 15;
 my $fingerless = 2;
 my $margin = 5;
 my $fingerwidth = 4;
@@ -21,24 +22,36 @@ my $kerf = 0.1;
 
 ##
 
+my $oddlinegaps = 3;
 my $fingerspacing = $fingerwidth;
-
 my $fingerholewidth = $fingerwidth;
 my $fingerholespacing = $fingerspacing;
-
+my $fingerlength = $thickness;
+my $fingerholedepth = $fingerlength;
 my $halflength = $innerlength / 2;
+my $outerlinegap = $linegap;
+my $linelength = ($innerwidth - $oddlinegaps * $linegap) / ($oddlinegaps - 1);
+my $evenlinegaps = $oddlinegaps - 1;
+my $normallines = $evenlinegaps - 1;
+my $realinnerwidth = $innerwidth;
 
-$fingerwidth     += $kerf; $fingerspacing     -= $kerf;
-$fingerholewidth -= $kerf; $fingerholespacing += $kerf;
-$innerwidth      += $kerf;
-$innerheight     += $kerf;
+my $dkerf = 2 * $kerf;
+
+$fingerwidth     += $dkerf; $fingerspacing     -= $dkerf;
+$fingerholewidth -= $dkerf; $fingerholespacing += $dkerf;
+$fingerlength    += $kerf;
+$fingerholedepth -= $kerf;
+$innerwidth      += $dkerf;
+$innerheight     += $dkerf;
 $halflength      += $kerf;
-$linegap         += $kerf;
+$linegap         += $dkerf; $linelength        -= $dkerf;
 
-my $linegaps = 3;
-my $notchgap = 3 * $fingerwidth;
-my $halfnotchgap = $notchgap / 2;
-my $notchless = $halflength - ($notchgap - 2 * $fingerwidth) / 2;
+my $outerlinelength = ($innerwidth - $normallines * $linelength - $evenlinegaps * $linegap) / 2;
+
+$outerlinegap    += $kerf;  $outerlinelength   -= $kerf;
+
+my $halfnotchspacing = $notchspacing / 2;
+my $notchless = ($innerlength / 2) - $halfnotchspacing - $fingerholewidth;
 
 my $fingers = int(($innerlength - 2 * $fingerless) / $fingerwidth / 2);
 
@@ -92,7 +105,7 @@ $y = $margin + $innerheight + 2 * $thickness + $margin;
 say "<path d='M $x $y";
 say "v $innerwidth";
 
-say "h $halfnotchgap";
+say "h $halfnotchspacing";
 say "v -$thickness h $fingerholewidth v $thickness";
 say "h $notchless $halfcircum $fingerless";
 
@@ -102,11 +115,11 @@ say "v -$thickness h $fingerholewidth v $thickness";
 
 say "h $fingerless $halfcircum $notchless";
 say "v -$thickness h $fingerholewidth v $thickness";
-say "h $halfnotchgap";
+say "h $halfnotchspacing";
 
 say "v -$innerwidth";
 
-say "h -$halfnotchgap";
+say "h -$halfnotchspacing";
 say "v $thickness h -$fingerholewidth v -$thickness";
 say "h -$notchless -$halfcircum -$fingerless";
 
@@ -116,7 +129,7 @@ say "v $thickness h -$fingerholewidth v -$thickness";
 
 say "h -$fingerless -$halfcircum -$notchless";
 say "v $thickness h -$fingerholewidth v -$thickness";
-#say "h -$halfnotchgap";
+#say "h -$halfnotchspacing";
 say "z'/>";
 
 
@@ -127,21 +140,18 @@ for (1..2) {
     my $lines_x = ceil($halfcircum / $linespacing) + 1;
 
     for my $x_line (1..$lines_x) {
-        my $linelength = ($innerwidth - $linegaps * $linegap) / ($linegaps - 1);
         if ($x_line % 2) {
             say "m 0 $linegap";
-            say "v $linelength m 0 $linegap" for 1..$linegaps-1;
+            say "v $linelength m 0 $linegap" for 1..$oddlinegaps-1;
         } else {
-            my $gaps = $linegaps - 1;
-            my $normallines = $gaps - 1;
-            my $outerlinelength = ($innerwidth - $normallines * $linelength - $gaps * $linegap) / 2;
             say "v $outerlinelength";
-            say "m 0 $linegap";
-            say "v $linelength m 0 $linegap" for 1..$gaps-1;
-            say "v $outerlinelength";
+            say "m 0 $outerlinegap";
+            say "v $linelength m 0 $linegap" for 1..$evenlinegaps-2;
+            say "v $linelength";
+            say "m 0 $outerlinegap v $outerlinelength";
         }
         say "";
-        say "m $linespacing -$innerwidth";
+        say "m $linespacing -$realinnerwidth";
     }
     say "'/>";
     $x += $halfcircum + $innerlength;
