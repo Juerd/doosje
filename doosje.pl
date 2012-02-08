@@ -18,7 +18,7 @@ my $margin = 5;
 my $fingerwidth = 4;
 my $linespacing = 1.5;
 my $linegap = 3;
-my $kerf = 0.1;
+my $kerf = 0;
 
 ##
 
@@ -34,6 +34,7 @@ my $linelength = ($innerwidth - $oddlinegaps * $linegap) / ($oddlinegaps - 1);
 my $evenlinegaps = $oddlinegaps - 1;
 my $normallines = $evenlinegaps - 1;
 my $realinnerwidth = $innerwidth;
+my $stroke = $kerf || 0.1;
 
 my $dkerf = 2 * $kerf;
 
@@ -68,7 +69,7 @@ print <<"END";
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1"
  width="350mm" height="210mm" viewBox="0 0 350 210">
 <style type="text/css">
-path { stroke: red; fill: none; stroke-width: ${kerf}mm; }
+path { stroke: red; fill: none; stroke-width: ${stroke}mm; }
 </style>
 END
 
