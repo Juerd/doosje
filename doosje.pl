@@ -8,9 +8,9 @@ my $pi = 3.1415926;
 
 # All these are in millimeters:
 
-my $innerheight  = 40;    # Inner height; nothing special
-my $innerlength  = 80;    # Inner length excluding half circles on the sides
-my $innerwidth   = 60;    # Inner width of the box, between the two walls
+my $innerheight  = 30;    # Inner height; nothing special
+my $innerlength  = 89;    # Inner length excluding half circles on the sides
+my $innerwidth   = 51;    # Inner width of the box, between the two walls
 my $thickness    =  2;    # Material thickness
 
 my $notchspacing = 15;    # Space between the lid notches
@@ -19,10 +19,9 @@ my $margin       =  5;    # Margin between page boundary and between objects
 my $fingerwidth  =  4;    # Width of the "fingers"
 my $linespacing  =  1.5;  # Space between parallel flex lines (centre to centre)
 my $linegap      =  3;    # Space between flex lines
-my $kerf         =  0.1;  # Cutting loss. Set to 0 if you don't know the kerf,
+my $kerf         =  0.03; # Cutting loss. Set to 0 if you don't know the kerf,
                           # to get the regular loose fit. Increase for a more
-                          # tight fit. The kerf is typically much less than
-                          # 0.5 mm.
+                          # tight fit. The kerf is typically less than 0.1 mm.
 ##
 
 my $oddlinegaps = 3;      # Number of uncut gaps between the flex lines
@@ -39,6 +38,8 @@ warn sprintf(
     2 * $thickness + $innerheight,
 );
 
+my $notchwidth = $fingerwidth;  # no kerf compensation, we want the looser fit
+my $outerwidth = $innerwidth + 2 * $thickness;
 my $fingerspacing = $fingerwidth;
 my $fingerholewidth = $fingerwidth;
 my $fingerholespacing = $fingerspacing;
@@ -46,10 +47,9 @@ my $fingerlength = $thickness;
 my $fingerholedepth = $fingerlength;
 my $halflength = $innerlength / 2;
 my $outerlinegap = $linegap;
-my $linelength = ($innerwidth - $oddlinegaps * $linegap) / ($oddlinegaps - 1);
 my $evenlinegaps = $oddlinegaps - 1;
 my $normallines = $evenlinegaps - 1;
-my $realinnerwidth = $innerwidth;
+#my $realinnerwidth = $innerwidth;
 my $realinnerlength = $innerlength;
 my $stroke = $kerf || 0.1;
 my $fingers = int(($realinnerlength - 2 * $fingerless) / $fingerwidth / 2);
@@ -63,19 +63,21 @@ $fingerholewidth -= $dkerf; $fingerholespacing += $dkerf;
 $fingerlength    += $kerf;
 $fingerholedepth -= $kerf;
 $fingerholeless  += $kerf;
-$innerwidth      += $dkerf;
+$outerwidth      += $dkerf;
 $innerheight     += $dkerf;
 $innerlength     += $dkerf;
 $halflength      += $kerf;
 $linegap         += $dkerf;
 
-my $outerlinelength = ($innerwidth - $normallines * $linelength - $evenlinegaps * $linegap) / 2;
+my $linelength = ($outerwidth - $oddlinegaps * $linegap) / ($oddlinegaps - 1);
+my $outerlinelength = ($outerwidth - $normallines * $linelength - $evenlinegaps * $linegap) / 2;
 
-$linelength      -= $dkerf;
+#$linelength -= $dkerf;
+#$outerlinelength -= $kerf;
 
 
 my $halfnotchspacing = $notchspacing / 2;
-my $notchless = ($innerlength / 2) - $halfnotchspacing - $fingerholewidth;
+my $notchless     = ($innerlength / 2) - $halfnotchspacing - $notchwidth;
 
 
 warn sprintf(
@@ -84,7 +86,7 @@ warn sprintf(
         ceil(2 * $margin + 2 * $innerlength + $circum),
     ),
     my $sheetheight = ceil(
-        3 * $margin + $innerheight + 2 * $fingerlength + $innerwidth
+        3 * $margin + $innerheight + 2 * $fingerlength + $outerwidth
     ),
 );
 
@@ -95,11 +97,10 @@ print <<"END";
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1"
  width="${sheetwidth}mm" height="${sheetheight}mm"
  viewBox="0 0 ${sheetwidth} ${sheetheight}">
-<style type="text/css">
-path { stroke: red; fill: none; stroke-width: ${stroke}mm; }
-</style>
 END
 
+# With CSS, inkscape forgets the properties on copy/paste
+my $attr = qq[fill="none" stroke="red" stroke-width="${stroke}mm"];
 my ($x, $y);
 
 say "<g>";  # Grouping makes moving things around in Inkscape easier
@@ -112,22 +113,24 @@ $y = $margin + $innerheight + 2 * $thickness + $margin;
 
 for (1..2) {
     # Draw from outside in, to ensure symmetry
-    my $direction = $_ == 2 ? "-" : "";
+    my $xdir = $_ == 2 ? "-" : "";
+    my $ydir = "-";
 
-    say "<path d='M $x $y";
+    say "<path $attr d='M $x $y";
     my $lines_x = ceil($halfcircum / $linespacing) + 1;
 
     for my $x_line (1..$lines_x) {
+        $ydir = $ydir ? "" : "-";
         if ($x_line % 2) {
-            say "m 0 $linegap";
-            say "v $linelength m 0 $linegap" for 1..$oddlinegaps-1;
-            say "m $direction$linespacing -$realinnerwidth";
+            say "m 0 $ydir$linegap";
+            say "v $ydir$linelength m 0 $ydir$linegap" for 1..$oddlinegaps-1;
+            say "m $xdir$linespacing 0";
         } else {
-            say "v $outerlinelength";
-            say "m 0 $linegap";
-            say "v $linelength m 0 $linegap" for 1..$normallines;
-            say "v $outerlinelength";
-            say "m $direction$linespacing -$innerwidth";
+            say "v $ydir$outerlinelength";
+            say "m 0 $ydir$linegap";
+            say "v $ydir$linelength m 0 $ydir$linegap" for 1..$normallines;
+            say "v $ydir$outerlinelength";
+            say "m $xdir$linespacing 0";
         }
     }
     say "'/>";
@@ -138,10 +141,10 @@ for (1..2) {
 
 $x = $margin + 0;
 
-say "<path d='M $x $y";
+say "<path $attr d='M $x $y";
 
 # WEST
-say "v $innerwidth";
+say "v $outerwidth";
 
 # SOUTH: West lid, with notch hole
 say "h $halfnotchspacing";
@@ -167,7 +170,7 @@ say "v -$fingerholedepth h $fingerholewidth v $fingerholedepth";
 say "h $halfnotchspacing";
 
 # WEST
-say "v -$innerwidth";
+say "v -$outerwidth";
 
 # NORTH: East lid, with notch hole
 say "h -$halfnotchspacing";
@@ -203,10 +206,10 @@ $x = $margin + $notchless + $fingerwidth + $radius;
 $y = $margin + $thickness;
 
 for (1..2) {
-    say "<path d='M $x $y";
+    say "<path $attr d='M $x $y";
 
     # TOP: Left lid notch and lid bed
-    say "v -$fingerlength h -$fingerwidth v $fingerlength";
+    say "v -$fingerlength h -$notchwidth v $fingerlength";
     say "h -$notchless";
 
     # LEFT: Hinge arc
@@ -224,7 +227,7 @@ for (1..2) {
 
     # TOP: Right lid notch and lid bed
     say "h -$notchless";
-    say "v -$fingerlength h -$fingerwidth v $fingerlength";
+    say "v -$fingerlength h -$notchwidth v $fingerlength";
 
     # Close path
     say "h -$notchspacing" if 0;  # not needed but useful for debugging
